@@ -24,7 +24,8 @@ make -i
 
 Unix程序员手册:
 - UNIX Programmer's Manual
-- 操作系统内置，使用`man`命令查看，划分为了多个部分：
+- 操作系统内置，使用`man`命令查看，划分为了多个部分。
+- `man man`查看`man`命令使用方法。
 ```
        man  is  the system's manual pager.  Each page argument given to man is normally the name of a program, utility or function.  The manual page associated with each of these arguments is then found and displayed.  A section, if provided, will direct man to look only in that section
        of the manual.  The default action is to search in all of the available sections following a pre-defined order (see DEFAULTS), and to show only the first page found, even if page exists in several sections.
@@ -42,3 +43,6 @@ Unix程序员手册:
        9   Kernel routines [Non standard]
 ```
 - 可以查看命令、系统调用、库函数等。例子`man ls`，`man 2 open`。
+- 手册有9个不同部分，可以将第二个参数指定为这个数，对于在多个部分都有信息的内容来说，通过这个显式指定要显示哪一部分的内容。
+- `man <num> intro`显示对于每个部分的介绍。
+- 手册的特定部分使用`name(num)`来表示，后续将会使用这种方法表明在手册中内容。例如`ls(1)`，这样用在`man`命令中好像要加引号括起来才行`man 'ls(1)'`等价于使用`man 1 ls`。
