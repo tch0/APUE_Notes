@@ -14,7 +14,7 @@ int main()
     ssize_t num = 0;
     const char* info = "The contents of IOTest.txt:\n";
     write(STDOUT_FILENO, info, strlen(info) + 1);
-    while ((num = read(fd, buf, MAXLINE)) > 0)
+    while ((num = read(fd, buf, MAXLINE)) > 0) // 0 EOF, -1 error
     {
         write(STDOUT_FILENO, buf, num);
     }

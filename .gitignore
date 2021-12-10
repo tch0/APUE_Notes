@@ -1,8 +1,9 @@
 # all files ignored, for all generated binary files
 *
 
-# track .gitignore
+# track .gitignore .editorconfig
 !.gitignore
+!.editorconfig
 
 # track all directories
 !*/
@@ -17,6 +18,9 @@
 
 # track shell scripts
 !*.sh
+
+# track some useful python scripts
+!*.py
 
 # track test *.txt files
 !*.txt
