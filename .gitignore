@@ -1,0 +1,24 @@
+# all files ignored, for all generated binary files
+*
+
+# track .gitignore
+!.gitignore
+
+# track all directories
+!*/
+
+# track *.c *.h source files
+!*.c
+!*.h
+
+# track makefiles
+!Makefile
+!makefile
+
+# track shell scripts
+!*.sh
+
+# track test *.txt files
+!*.txt
+
+# add all specific files that want to be tracked to here
