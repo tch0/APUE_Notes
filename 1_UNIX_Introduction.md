@@ -1,3 +1,21 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [1. UNIX基础知识](#1-unix%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86)
+  - [1.1 体系结构](#11-%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84)
+  - [1.2 登录](#12-%E7%99%BB%E5%BD%95)
+  - [1.3 文件与目录](#13-%E6%96%87%E4%BB%B6%E4%B8%8E%E7%9B%AE%E5%BD%95)
+  - [1.4 输入输出](#14-%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA)
+  - [1.5 程序和进程](#15-%E7%A8%8B%E5%BA%8F%E5%92%8C%E8%BF%9B%E7%A8%8B)
+  - [1.6 错误处理](#16-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86)
+  - [1.7 用户标识](#17-%E7%94%A8%E6%88%B7%E6%A0%87%E8%AF%86)
+  - [1.8 信号](#18-%E4%BF%A1%E5%8F%B7)
+  - [1.9 时间值](#19-%E6%97%B6%E9%97%B4%E5%80%BC)
+  - [1.10 系统调用与库函数](#110-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8E%E5%BA%93%E5%87%BD%E6%95%B0)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## 1. UNIX基础知识
 
 ### 1.1 体系结构
