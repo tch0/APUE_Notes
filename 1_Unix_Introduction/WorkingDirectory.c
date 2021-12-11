@@ -6,7 +6,7 @@
 #define MAXLINE 256
 
 // chdir function: change the current working directory(cwd) of current program
-// getpwd function: get current working directory
+// getcwd function: get current working directory
 
 // input "showcwd": print current dir
 // input "ls": show all file in current dir
