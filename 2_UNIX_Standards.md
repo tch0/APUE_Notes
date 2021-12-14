@@ -16,6 +16,12 @@
     - [2.3.2 POSIX限制](#232-posix%E9%99%90%E5%88%B6)
     - [2.3.3 XSI限制](#233-xsi%E9%99%90%E5%88%B6)
     - [2.3.4 函数获取限制](#234-%E5%87%BD%E6%95%B0%E8%8E%B7%E5%8F%96%E9%99%90%E5%88%B6)
+    - [2.3.5 不确定的运行时限制](#235-%E4%B8%8D%E7%A1%AE%E5%AE%9A%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E9%99%90%E5%88%B6)
+  - [2.4 选项](#24-%E9%80%89%E9%A1%B9)
+  - [2.5 功能测试宏](#25-%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95%E5%AE%8F)
+  - [2.6 基本数据类型](#26-%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B)
+  - [2.7 标准之间的冲突](#27-%E6%A0%87%E5%87%86%E4%B9%8B%E9%97%B4%E7%9A%84%E5%86%B2%E7%AA%81)
+  - [2.8 总结](#28-%E6%80%BB%E7%BB%93)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -561,4 +567,110 @@ SYMLINK_MAX = (no limit)
 no symbol for _POSIX_TIMESTAMP_RESOLUTION
 no symbol for _PC_TIMESTAMP_RESOLUTION
 ```
-- SourceCode分支`standards/`目录源码中实现了打印所有支持、不支持的限制的逻辑。上述结果是执行`./option .`和`./conf .`的结果。
+- SourceCode分支`standards/`目录源码中实现了打印所有支持、不支持的限制的逻辑。上述结果是执行`./option .`和`./conf .`的结果，需要先`make`生成这两个C文件并编译。
+
+### 2.3.5 不确定的运行时限制
+
+路径名：
+- 为路径名动态分配内存，应该取`PATH_MAX`变量值。
+- 为了保证可移植性，在定义该常量和未定义该常量需要使用`sysconf`的系统上都能运行可以使用如下逻辑：
+```c
+#ifdef PATH_MAX
+static long pathmax = PATH_MAX;
+#else
+static long pathmax = 0;
+#endif
+```
+- 然后在使用时判断`pathmax`是否为0，如果是再通过`pathconf("/", _PC_PATH_MAX)`获取一次，并且如果获取到的值是不确定的，那么就是用猜测的值。
+- 以上逻辑实现在`lib/pathalloc.c`，可以作为参考。
+- 如果不需要保证可移植性，那么不需要这么冗余的逻辑，可移植性某种程度上来说也是枷锁。
+
+最大打开文件数：
+- 限制：`POPEN_MAX`。
+- 如果没有定义则使用`sysconf`。
+- 对于某些守护进程需要关闭所有打开文件，可能就会获取到该值，做一个循环，对每一个文件描述符`close`。
+- 但`sysconf`获取到的值可能是无限的，那么此时会将`LONG_MAX`作为`POPEN_MAX`报告，做循环效率会很差。
+- 支持XSI扩展的系统上提供了`getrlimit(2)`函数获取限制，声明在`<sys/resource.h>`中。
+- 可通过`ulimit`命令查看和设置某个限制，通过`ulimit --help`查看帮助，不在`man 1`中。
+
+## 2.4 选项
+
+
+关于一个UNIX系统是否支持一个可选功能：
+- 可以通过选项获取这个信息，每个功能都对应一个符号常量。就是前面说的40个可选部分。
+- 类似于对限制的处理：
+- 编译时选项定义在`<unistd.h>`。
+- 否则通过`sysconf pathconf fpathconf`传入选项的符号常量对应的`_SC _PC`前缀的名称来获取。
+- 如果选项的符号常量是`_POSIX`前缀，那么将`_POSIX`替换为`_SC _PC`。如果是`_XOPEN`前缀，那么在前面添加`_SC _PC`。
+
+关于选项的值：
+- 如果符号常量没有定义，或者定义为-1，那么该平台编译时不支持该选项。
+- 如果符号常量定义值大于0，那么平台支持该选项。
+- 如果定义值为0，那么需要使用`sysconf pathconf fpathconf`获取。
+
+Linux中支持：
+- 几乎所有可选项都是支持的。
+- 暂时不需要考虑到其他UNIX系统的可移植性。遇到再说，可能基本很长时间内都不会遇到。
+
+## 2.5 功能测试宏
+
+在源文件中定义宏以排除实现定义常量，而仅使用POSIX定义常量：
+- `_POSIX_C_SOURCE _XOPEN_SOURCE`分别表示POSIX.1和XSI的版本，前者是四位十进制年和2位十进制月构成的6位十进制数，后者使用600(SUSv3)/700(SUSv4)这样的值。
+- `_XOPEN_SOURCE`定义为700，除了表示XSI选项可用外，就POSIX.1功能而言，与将`_POSIX_C_SOURCE`定义为`200809L`作用相同。
+- 细节请查看手册`feature_test_macros(7)`。
+
+使用方法：
+- 编译选项：`cc -D_POSIX_C_SOURCE=200809L file.c`。
+- 源文件第一行：
+```c
+#define _POSIX_C_SOURCE 200809L
+```
+
+## 2.6 基本数据类型
+
+`<sys/types.h>`中定义了实现相关的数据类型，称之为**基本系统数据类型**（primitive system data type）：
+- 以后会常和这些类型打交道。都是用C的`typedef`定义，绝大多数以`_t`结尾。
+- 常用的：
+
+|类型|说明|
+|:-|:-|
+|`clock_t     `|时钟滴答计数器（clock tick），进程时间
+|`comp_t      `|压缩的时钟滴答
+|`dev_t       `|设备号（主和次）
+|`fd_set      `|文件描述符集
+|`fpos_t      `|文件位置
+|`gid_t       `|数值用户组ID
+|`ino_t       `|i节点编号
+|`mode_t      `|文件类型，文件创建模式
+|`nlink_t     `|目录项（文件、目录）连接计数
+|`off_t       `|文件长度和偏移量（`lseek`），带符号
+|`pid_t       `|进程ID和进程组ID
+|`pthread_t   `|线程ID
+|`ptrdiff_t   `|指针相减结果，带符号
+|`rlim_t      `|资源限制
+|`sig_atomic_t`|能原子性访问的数据
+|`sigset_t    `|信号集
+|`size_t      `|对象长度，无符号
+|`ssize_t     `|字节计数的长度，带符号（`read write`）
+|`time_t      `|日历时间的秒计数器
+|`uid_t       `|数值用户ID
+|`wchar_t     `|宽字符
+- 使用这些类型以屏蔽因系统不同而变化的实现细节。
+
+## 2.7 标准之间的冲突
+
+不同的标准之间配合很好，SUS和POSIX.1基本是同一个东西。主要关注ISO C和POSIX.1存在的差别。
+- 如果存在冲突，POSIX.1服从ISO C标准。
+- ISO C定义了`clock`函数返回进程CPU时间，`clock_t`类型，但没有规定单位，除以`<time.h>`中定义的`CLOCKS_PER_SEC`以变换为秒为单位。
+- POSIX.1定义了`times`函数调用者及其所有终止子进程的CPU时间以及时钟时间。都是`clock_t`类型，需要通过`sysconf`获取每秒滴答数用于表示函数返回值。
+- 注意使用了同一类型，但不同单位，使用时需要注意，不要搞混了。
+
+另外的冲突：
+- ISO C标准没有POSIX.1那么严格，较少考虑宿主操作系统环境。
+- 为了兼容性，都会实现ISO C，但某些功能可能也会在系统调用中提供类似函数。比如UNIX中信号处理更推荐使用POSIX.1的`sigaction`函数而非ISO C的`signal`(不同UNIX实现可能不同)。
+
+## 2.8 总结
+
+- UNIX环境存在标准，同时存在可选部分和可能随实现改变的参数。
+- 区分ISO C和POSIX.1、SUS标准。
+- 标准定义了各种限制和常量，但并不完美。

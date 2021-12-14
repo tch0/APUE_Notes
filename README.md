@@ -5,6 +5,7 @@
 章节目录：
 - [第0章-环境准备](0_Preparing.md)
 - [第1章-UNIX基础知识](1_UNIX_Introduction.md)
+- [第2章-UNIX标准与实现](2_UNIX_Standards.md)
 
 分支：
 - [master](https://github.com/tch0/APUE_Notes/)：笔记。
