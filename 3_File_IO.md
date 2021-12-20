@@ -25,7 +25,7 @@
 
 总览：
 - 函数： `open` `read` `write` `lseek` `close`
-- 不带缓冲的I/O
+- 不带缓冲的I/O（指直接的系统调用，而不是由用户多加一层缓冲区来控制何时进行系统调用）。
 - 原子操作，多个进程间共享文件，相关函数 `dup` `fcntl` `sync` `fsync` `ioctl`
 
 
