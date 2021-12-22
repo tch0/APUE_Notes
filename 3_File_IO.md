@@ -58,7 +58,7 @@ int openat(int dirfd, const char *pathname, int flags, mode_t mode);
 - 成功返回文件描述符，失败-1。
 - C语言没有函数重载，真正的原型是最后一个是可变参数，在一个原型中定义的，不过`open`有限制仅接受2个或者3个参数，不接受更多。写作上面这样的形式仅为了说明。
 - `openat`当传入相对路径时，则是相对于传入的描述符指定的路径，其余和`open`完全相同。因为一个进程中的多个线程共享进程的当前工作目录，所以此时不同线程中可能会需要使用到这一点。另外是为了避免TOCTTOU（time-of-check-to-time-of-use）错误。
-- 无论打开还是创建，重点都在`flags`参数上。某些`flags`标记会需要使用额外的`mode`参数，主要就是创建。
+- 无论打开还是创建，重点都在`flags`参数上。某些`flags`标记会需要使用额外的`mode`参数，说的就是创建。
 - `flags`参数详解，更多查看`open(1)`：
 
 |值|含义|
@@ -83,7 +83,7 @@ int openat(int dirfd, const char *pathname, int flags, mode_t mode);
 |`O_RSYNC    `|同步读和写（Linux不支持，等同于O_SYNC），实现可选
 
 - 前5个选项互斥，后续的可选。并非所有选项Linux都有，看手册。
-- `creat(path, mode)`等同于`open(path, O_RDWR | O_CREATE | O_TRUNC, mode)`。仅创建时会用到`mode`。
+- `creat(path, mode)`等同于`open(path, O_RDWR | O_CREATE | O_TRUNC, mode)`。仅创建时会用到`mode`，`mode`参数的含义是文件类型和访问权限，下一章详解，此处略过不谈。
 
 文件路径截断：
 - `_POSIX_NO_TRUNC`常量决定要截断过长的文件和路径名还是返回一个错误（`errno`）。本地Linux为1，也就是返回错误。
@@ -222,13 +222,13 @@ int dup2(int oldfd, int newfd);
 ```
 - 复制一个文件描述符，成功返回新描述符，失败返回-1。
 - `dup2`指定文件，如果`oldfd`和`newfd`相等，不做任何事情，不等且`newfd`已经打开，则相当于先`close(newfd)`再复制，原子操作。
-- 新的和旧的文件文件描述符执行同一个文件表项，共享文件状态标志和偏移量。
+- 新的和旧的文件文件描述符指向同一个文件表项，共享文件状态标志和偏移量。
 
 ## 3.10 sync fsync & fdatasync
 
 UNIX系统内核中实现有缓冲区高速缓存（kernel buffer cache）或页高速缓存（page cache）用来缓存文件。通过`write`写文件时通常先写到页缓存，然后延迟写（delay write）回磁盘以提高性能（由周期性的系统守护进程完成）。
 
-页缓存中被写入的页会标记为脏，回写进程会回写这些页，并清楚脏标记。细节尚不清楚。
+页缓存中被写入的页会标记为脏，回写进程会回写这些页，并清除脏标记。是否是独立文件系统、如何实现的等细节待探究，现仅理解概念。
 
 提供了三个函数来显式将文件写回磁盘：
 ```c
@@ -292,6 +292,8 @@ int ioctl(int fd, unsigned long request, ...);
     - 内核缓冲区高速缓存（kernel buffer cache）或页高速缓存（page cache）。
     - 物理硬件，磁盘。
 - 用户和内核间用系统调用`write read`实现，由CPU拷贝，内核缓存和硬件之间由DMA拷贝，用户层可使用`fsync O_SYNC`等手段一定程度控制。
+
 ![IO结构](Images/APUE_3_file_IO_IOstructure.svg)
+
 - 务必理解文件描述符表项、文件表项、v节点i节点关系。
 - 区分文件描述符标志（file descriptor flags，仅一个`FD_CLOEXEC`）和文件状态标志（file status flags，读写追加同步等）。
